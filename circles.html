@@ -1,0 +1,213 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas"></canvas>
+    <br/>
+    <button id="outerLeft" onclick="rotate('outer', 'left');">
+    Rotate Outer Left</button>
+    <button id="outerRight" onclick="rotate('outer', 'right');">
+    Rotate Outer Right</button>
+    <button id="middleLeft" onclick="rotate('middle', 'left');">
+    Rotate Middle Left</button>
+    <button id="middleRight" onclick="rotate('middle', 'right');">
+    Rotate Middle Right</button>
+    <button id="innerLeft" onclick="rotate('inner', 'left');">
+    Rotate Inner Left</button>
+    <button id="innerRight" onclick="rotate('inner', 'right');">
+    Rotate Inner Right</button>
+    
+    
+    <script>
+      var outerArray = ["C", "D", "E", "F#", "G#", "A#",
+                        "C", "D", "E", "F#", "G#", "A#"];
+
+      var middleArray = ["E", "G", "A#", "C#", "E", "G",
+                         "A#", "C#", "E", "G", "A#", "C#"];
+
+      var innerArray = ["G", "B", "D#", "G", "B", "D#",
+                        "G", "B", "D#", "G", "B", "D#"];
+      var outerRotate = 0;
+      var middleRotate = 0;
+      var innerRotate = 0;
+
+      drawCanvas();
+      
+      // Draws a circle, centered on the center of the canvas, to a given
+      // radius.
+      function drawCircle(radius) {
+          var canvas = document.getElementById('myCanvas');
+          var context = canvas.getContext('2d');
+          var centerX = canvas.width / 2;
+          var centerY = canvas.height / 2;
+          
+          context.beginPath();
+          context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+          context.strokeStyle = 'black';
+          context.lineWidth = 2;
+          context.stroke();
+          return;
+      }
+      
+      // Takes a radius, an array of letters, and an index of rotation, and
+      // draws them in 12 equidistant sectors of the circle, centered around the
+      // middle of the canvas.  When the index of rotation is equal to 0, the
+      // 0th element goes at the 12 o-clock area.  When the index is 1, the 0th
+      // element goes to 1 o-clock, etc.
+      function drawLetters(textRadius, textArray, rotationIndex, fontSize) {
+          var canvas = document.getElementById('myCanvas');
+          var context = canvas.getContext('2d');
+          var centerX = canvas.width / 2;
+          var centerY = canvas.height / 2;
+          var degrees, arrayIndex, xOffset, yOffset, x, y;
+          
+          context.font = 'normal ' + fontSize.toString() + 'pt Calibri';
+          context.fillStyle = 'black'
+          context.textAlign='center';
+          context.textBaseline='middle';
+          
+          for(var i = 0; i < 12; i++) {
+              degrees = 30 * i;
+              arrayIndex = (i - rotationIndex + 12) % 12;
+
+              xOffset = textRadius * 
+                            Math.cos((degrees - 90) * Math.PI / 180);
+              x = Math.round(centerX + xOffset);
+
+              yOffset = textRadius *
+                            Math.sin((degrees - 90) * Math.PI / 180);
+              y = Math.round(centerY + yOffset);
+
+              if(i === rotationIndex) {
+                  context.fillStyle = '#8b0000';
+              }
+              
+              else {
+                  context.fillStyle = 'black';
+              }
+              
+              context.fillText(textArray[arrayIndex], x, y);
+          }
+          return;
+      }
+
+      // Main function. Draws everything.
+      function drawCanvas() {
+          var canvas = document.getElementById('myCanvas');
+          var canvasWidth = document.documentElement.clientWidth;
+          var canvasHeight = document.documentElement.clientHeight;
+
+          if(canvasWidth > canvasHeight) {
+              canvasWidth = canvasHeight;
+          }
+
+          else if (canvasHeight > canvasWidth) {
+              canvasHeight = canvasWidth;
+          }
+
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+          
+          var context = canvas.getContext('2d');
+          var outerRadius = canvas.height / 2 - 30;
+          var middleRadius = outerRadius * 3 / 4;
+          var innerRadius = outerRadius / 2;
+          var outerFontSize = canvasWidth / 30;
+          var middleFontSize = outerFontSize * 3 / 4;
+          var innerFontSize = outerFontSize * 5 / 8;
+
+          console.log("Outer: ", outerFontSize);
+
+          // Clear the canvas to redraw everything.
+          context.clearRect(0, 0, canvas. width, canvas.height);
+
+          drawCircle(outerRadius);
+          drawCircle(middleRadius);
+          drawCircle(innerRadius);
+
+          // Outer circle text.
+          var outerTextRadius = middleRadius + 
+                                (outerRadius - middleRadius) * 2/3;
+
+          drawLetters(outerTextRadius, outerArray, outerRotate, outerFontSize);
+
+          // Middle circle text.
+          var middleTextRadius = innerRadius + 
+                                (middleRadius - innerRadius) * 2/3;
+
+          drawLetters(middleTextRadius, middleArray, middleRotate,
+                      middleFontSize);
+              
+          // Inner circle text. Needs manual specification for the textRadius
+          // because there isn't another circle to use as a guide.
+          var innerTextRadius = outerRadius / 4 + 
+                                (innerRadius - outerRadius / 4) * 2/3;
+
+          drawLetters(innerTextRadius, innerArray, innerRotate, innerFontSize);
+      }
+      
+      function incrementModTwelve(num) {
+          return (num + 1) % 12;
+      }
+      
+      function decrementModTwelve(num) {
+          return (num + 11) % 12;
+      }
+      
+      function rotateNumber(num, direction) {
+          if(direction === 'left') {
+              return decrementModTwelve(num);
+          }
+          
+          else if(direction === 'right') {
+              return incrementModTwelve(num);
+          }
+          
+          return 0;
+      }
+
+      function rotate(wheel, direction) {
+          if(wheel === 'outer') {
+              outerRotate = rotateNumber(outerRotate, direction);
+          }
+          
+          else if(wheel === 'middle') {
+              middleRotate = rotateNumber(middleRotate, direction);
+          }
+          
+          else if(wheel === 'inner') {
+              innerRotate = rotateNumber(innerRotate, direction);
+          }
+          
+          drawCanvas(innerRotate, middleRotate, outerRotate);
+          
+          return;
+      }
+
+      var addEvent = function(object, type, callback) {
+          if (object == null || typeof(object) == 'undefined') return;
+          if (object.addEventListener) {
+              object.addEventListener(type, callback, false);
+          }
+ 
+          else if (object.attachEvent) {
+              object.attachEvent("on" + type, callback);
+          }
+
+          else {
+              object["on"+type] = callback;
+          }
+      }; 
+
+      window.addEventListener("resize", drawCanvas);
+      
+    </script>
+  </body>
+</html>      
